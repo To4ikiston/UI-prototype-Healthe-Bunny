@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Здоровый Зайчик - Дизайн приложения</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
+        }
+
+        body {
+            background: #F5F5F5;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: #4CAF50;
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .screens {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .screen {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .screen h2 {
+            color: #212121;
+            margin-bottom: 20px;
+            font-size: 20px;
+        }
+
+        .screen-content {
+            border: 2px solid #E0E0E0;
+            border-radius: 12px;
+            height: 500px;
+            position: relative;
+            overflow: hidden;
+            background: #FFFFFF;
+        }
+
+        /* Экран регистрации */
+        .registration {
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .logo {
+            width: 120px;
+            height: 120px;
+            background: #4CAF50;
+            border-radius: 60px;
+            margin: 40px 0;
+        }
+
+        .button {
+            width: 100%;
+            max-width: 280px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .button.primary {
+            background: #4CAF50;
+        }
+
+        .button.secondary {
+            background: #2196F3;
+        }
+
+        /* Главный экран */
+        .main-screen {
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .status-bar {
+            display: flex;
+            gap: 10px;
+        }
+
+        .status-item {
+            flex: 1;
+            height: 8px;
+            border-radius: 4px;
+        }
+
+        .health { background: #4CAF50; }
+        .experience { background: #FFC107; }
+        .energy { background: #2196F3; }
+
+        .character {
+            height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #F5F5F5;
+            border-radius: 12px;
+            margin: 20px 0;
+        }
+
+        .habits-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .habit-card {
+            padding: 15px;
+            border-radius: 12px;
+            background: #F5F5F5;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: white;
+            border-top: 1px solid #E0E0E0;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 10px;
+        }
+
+        .nav-item {
+            width: 40px;
+            height: 40px;
+            border-radius: 20px;
+            background: #F5F5F5;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Дизайн приложения "Здоровый Зайчик"</h1>
+        
+        <div class="screens">
+            <!-- Экран регистрации -->
+            <div class="screen">
+                <h2>Экран регистрации</h2>
+                <div class="screen-content">
+                    <div class="registration">
+                        <div class="logo"></div>
+                        <div class="button primary">Регистрация через Email</div>
+                        <div class="button secondary">Регистрация через телефон</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Главный экран -->
+            <div class="screen">
+                <h2>Главный экран</h2>
+                <div class="screen-content">
+                    <div class="main-screen">
+                        <div class="status-bar">
+                            <div class="status-item health"></div>
+                            <div class="status-item experience"></div>
+                            <div class="status-item energy"></div>
+                        </div>
+                        <div class="character">
+                            [Персонаж-зайчик]
+                        </div>
+                        <div class="habits-list">
+                            <div class="habit-card">Утренняя зарядка</div>
+                            <div class="habit-card">Здоровый завтрак</div>
+                            <div class="habit-card">Медитация</div>
+                        </div>
+                        <div class="nav-bar">
+                            <div class="nav-item"></div>
+                            <div class="nav-item"></div>
+                            <div class="nav-item"></div>
+                            <div class="nav-item"></div>
+                            <div class="nav-item"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Экран привычек -->
+            <div class="screen">
+                <h2>Экран привычек</h2>
+                <div class="screen-content">
+                    <div class="main-screen">
+                        <h3 style="color: #4CAF50;">Мои привычки</h3>
+                        <div class="habits-list">
+                            <div class="habit-card">
+                                <span>Утренняя зарядка</span>
+                                <span style="color: #4CAF50;">✓</span>
+                            </div>
+                            <div class="habit-card">
+                                <span>Здоровый завтрак</span>
+                                <span style="color: #4CAF50;">✓</span>
+                            </div>
+                            <div class="habit-card">
+                                <span>Медитация</span>
+                                <span style="color: #757575;">○</span>
+                            </div>
+                        </div>
+                        <div class="button primary" style="margin-top: auto;">
+                            Добавить привычку
+                        </div>
+                        <div class="nav-bar">
+                            <div class="nav-item"></div>
+                            <div class="nav-item"></div>
+                            <div class="nav-item"></div>
+                            <div class="nav-item"></div>
+                            <div class="nav-item"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Экран челленджей -->
+            <div class="screen">
+                <h2>Экран челленджей</h2>
+                <div class="screen-content">
+                    <div class="main-screen">
+                        <h3 style="color: #2196F3;">Активные челленджи</h3>
+                        <div class="habits-list">
+                            <div class="habit-card" style="background: #E3F2FD;">
+                                <span>7 дней медитации</span>
+                                <span>3/7</span>
+                            </div>
+                            <div class="habit-card" style="background: #E3F2FD;">
+                                <span>Утренняя зарядка</span>
+                                <span>5/10</span>
+                            </div>
+                        </div>
+                        <div class="button secondary" style="margin-top: auto;">
+                            Создать челлендж
+                        </div>
+                        <div class="nav-bar">
+                            <div class="nav-item"></div>
+                            <div class="nav-item"></div>
+                            <div class="nav-item"></div>
+                            <div class="nav-item"></div>
+                            <div class="nav-item"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Экран друзей -->
+            <div class="screen">
+                <h2>Экран друзей</h2>
+                <div class="screen-content">
+                    <div class="main-screen">
+                        <h3 style="color: #FFC107;">Мои друзья</h3>
+                        <div class="habits-list">
+                            <div class="habit-card">
+                                <span>Анна</span>
+                                <span>Уровень 5</span>
+                            </div>
+                            <div class="habit-card">
+                                <span>Михаил</span>
+                                <span>Уровень 3</span>
+                            </div>
+                        </div>
+                        <div class="button" style="background: #FFC107; margin-top: auto;">
+                            Добавить друга
+                        </div>
+                        <div class="nav-bar">
+                            <div class="nav-item"></div>
+                            <div class="nav-item"></div>
+                            <div class="nav-item"></div>
+                            <div class="nav-item"></div>
+                            <div class="nav-item"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Экран профиля -->
+            <div class="screen">
+                <h2>Профиль</h2>
+                <div class="screen-content">
+                    <div class="main-screen">
+                        <div style="text-align: center;">
+                            <div class="logo" style="width: 80px; height: 80px;"></div>
+                            <h3 style="margin: 10px 0;">Имя пользователя</h3>
+                            <p>Уровень 5</p>
+                        </div>
+                        <div class="habits-list">
+                            <div class="habit-card">Редактировать профиль</div>
+                            <div class="habit-card">Настройки</div>
+                            <div class="habit-card">Достижения</div>
+                        </div>
+                        <div class="nav-bar">
+                            <div class="nav-item"></div>
+                            <div class="nav-item"></div>
+                            <div class="nav-item"></div>
+                            <div class="nav-item"></div>
+                            <div class="nav-item"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html> 
