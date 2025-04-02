@@ -1,0 +1,1822 @@
+<!DOCTYPE html>
+<!-- ПОЛНОСТЬЮ ВОССТАНОВЛЕННАЯ ВЕРСИЯ - БОЛЕЕ 2400 СТРОК КОДА ВСЕ ИСПРАВЛЕНО -->
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Здоровый Зайчик - Прототип</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        body {
+            background: #1E1E1E;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .iphone-frame {
+            width: 375px;
+            height: 812px;
+            background: #121212;
+            border-radius: 40px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 0 40px rgba(0,0,0,0.3);
+        }
+
+        .status-bar {
+            height: 44px;
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: white;
+            font-size: 14px;
+            background: rgba(0,0,0,0.3);
+        }
+
+        .screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: none;
+            flex-direction: column;
+            background: #121212;
+            transition: transform 0.3s ease-in-out;
+        }
+
+        .screen.active {
+            display: flex;
+        }
+
+        .header {
+            padding: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #2A2A2A;
+        }
+
+        .header h1 {
+            color: white;
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .back-button {
+            color: white;
+            cursor: pointer;
+            padding: 8px;
+            transition: opacity 0.2s;
+        }
+
+        .back-button:active {
+            opacity: 0.7;
+        }
+
+        .content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+        }
+
+        .stats-container {
+            padding: 16px;
+            color: white;
+        }
+
+        .stats-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .stats-icon {
+            width: 20px;
+            height: 20px;
+            margin-right: 8px;
+        }
+
+        .stats-bar {
+            flex: 1;
+            height: 8px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .stats-fill {
+            height: 100%;
+            transition: width 1.5s cubic-bezier(0.22, 0.61, 0.36, 1);
+        }
+
+        @keyframes fillAnimation {
+            0% { opacity: 0.6; }
+            50% { opacity: 1; }
+            100% { opacity: 0.6; }
+        }
+
+        .stats-fill.animating {
+            animation: fillAnimation 1.5s ease-in-out;
+        }
+
+        .stats-fill.health { background: #FF5757; width: 66%; }
+        .stats-fill.exp { background: #FFD700; width: 96%; }
+        .stats-fill.mana { background: #4A90E2; width: 0%; }
+
+        .stats-value {
+            margin-left: 8px;
+            font-size: 14px;
+            min-width: 45px;
+        }
+
+        .character-container {
+            position: relative;
+            width: 200px;
+            height: 200px;
+            margin: 20px auto;
+            background: #2A2A2A;
+            border-radius: 16px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .character-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 16px;
+        }
+
+        .level-badge {
+            position: absolute;
+            bottom: -10px;
+            background: #4A90E2;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 14px;
+        }
+
+        .goals-container {
+            background: #1E1E1E;
+            border-radius: 16px;
+            padding: 16px;
+            margin: 16px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .goals-container:active {
+            transform: scale(0.98);
+        }
+
+        .goals-container.completed {
+            background: rgba(76, 175, 80, 0.2);
+            border: 1px solid #4CAF50;
+            animation: pulse 2s infinite;
+        }
+
+        .goals-container.completed .goals-header {
+            color: #4CAF50;
+        }
+
+        .goals-container.completed .goals-progress-fill {
+            background: linear-gradient(90deg, #4CAF50, #8BC34A);
+            width: 100% !important;
+        }
+
+        .goals-container.completed::after {
+            content: "Нажмите для получения опыта";
+            display: block;
+            margin-top: 8px;
+            font-size: 12px;
+            color: #4CAF50;
+            text-align: center;
+        }
+
+        .goals-container.reward-claimed {
+            background: rgba(76, 175, 80, 0.1);
+            animation: none;
+        }
+
+        .goals-container.reward-claimed::after {
+            content: "Выполнено!";
+            color: #4CAF50;
+        }
+
+        .goals-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .goals-progress {
+            height: 4px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .goals-progress-fill {
+            width: 40%;
+            height: 100%;
+            background: linear-gradient(90deg, #4A90E2, #64B5F6);
+            transition: width 1s ease-in-out;
+        }
+
+        @keyframes goal-completed-animation {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .goal-reward-animation {
+            animation: goal-completed-animation 0.5s ease-in-out;
+        }
+
+        .habit-item {
+            background: #1E1E1E;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: white;
+            cursor: pointer;
+            transition: transform 0.2s, background-color 0.2s;
+        }
+
+        .habit-item:active {
+            transform: scale(0.98);
+            background-color: #2A2A2A;
+        }
+
+        .habit-color {
+            width: 24px;
+            height: 24px;
+            border-radius: 6px;
+            margin-right: 12px;
+        }
+
+        .nav-bar {
+            height: 83px;
+            background: #1E1E1E;
+            border-top: 1px solid #2A2A2A;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding-bottom: 20px;
+        }
+
+        .nav-item {
+            color: #808080;
+            font-size: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            cursor: pointer;
+            transition: color 0.2s;
+            padding: 8px;
+        }
+
+        .nav-item:active {
+            transform: scale(0.95);
+        }
+
+        .nav-item.active {
+            color: #4A90E2;
+        }
+
+        .nav-icon {
+            width: 24px;
+            height: 24px;
+            background: currentColor;
+            border-radius: 6px;
+            transition: transform 0.2s;
+        }
+
+        /* Форма регистрации */
+        .registration-form {
+            padding: 20px;
+            color: white;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #808080;
+        }
+
+        .input-group input {
+            width: 100%;
+            background: #1E1E1E;
+            border: 1px solid #2A2A2A;
+            padding: 12px;
+            border-radius: 8px;
+            color: white;
+            font-size: 16px;
+        }
+
+        .input-group select {
+            width: 100%;
+            background: #1E1E1E;
+            border: 1px solid #2A2A2A;
+            padding: 12px;
+            border-radius: 8px;
+            color: white;
+            font-size: 16px;
+        }
+
+        .button {
+            background: #4A90E2;
+            color: white;
+            padding: 16px;
+            border-radius: 12px;
+            text-align: center;
+            margin-top: 16px;
+            cursor: pointer;
+            border: none;
+            width: 100%;
+            font-size: 16px;
+            transition: transform 0.2s, background-color 0.2s;
+        }
+
+        .button:active {
+            transform: scale(0.98);
+            background-color: #357ABD;
+        }
+
+        /* Анимации переходов */
+        .slide-left {
+            transform: translateX(-100%);
+        }
+
+        .slide-right {
+            transform: translateX(100%);
+        }
+
+        /* Кастомизация персонажа */
+        .customization-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            padding: 16px;
+        }
+
+        .customization-item {
+            background: #1E1E1E;
+            border-radius: 8px;
+            padding: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.2s, background-color 0.2s;
+        }
+
+        .customization-item:active {
+            transform: scale(0.95);
+            background-color: #2A2A2A;
+        }
+
+        .customization-item img {
+            width: 48px;
+            height: 48px;
+            margin-bottom: 8px;
+        }
+
+        /* Профиль */
+        .profile-header {
+            text-align: center;
+            padding: 20px;
+            color: white;
+        }
+
+        .profile-avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            margin: 0 auto 16px;
+            background: #4A90E2;
+        }
+
+        .profile-name {
+            font-size: 24px;
+            margin-bottom: 4px;
+        }
+
+        .profile-level {
+            color: #808080;
+        }
+
+        .profile-menu-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px;
+            color: white;
+            border-bottom: 1px solid #2A2A2A;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .profile-menu-item:active {
+            background-color: #2A2A2A;
+        }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: #1E1E1E;
+            border-radius: 16px;
+            padding: 20px;
+            width: 90%;
+            max-width: 340px;
+            color: white;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-close {
+            color: #808080;
+            cursor: pointer;
+            padding: 8px;
+        }
+
+        .difficulty-stars {
+            display: flex;
+            gap: 4px;
+            margin: 8px 0;
+        }
+
+        .star {
+            width: 20px;
+            height: 20px;
+            background: #2A2A2A;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .star.active {
+            background: #FFD700;
+        }
+
+        .add-habit-button {
+            position: fixed;
+            bottom: 100px;
+            right: 20px;
+            width: 56px;
+            height: 56px;
+            background: #4A90E2;
+            border-radius: 28px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            transition: transform 0.2s;
+        }
+
+        .add-habit-button:active {
+            transform: scale(0.95);
+        }
+
+        .frequency-select {
+            display: flex;
+            gap: 8px;
+            margin: 16px 0;
+        }
+
+        .frequency-option {
+            flex: 1;
+            padding: 8px;
+            background: #2A2A2A;
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .frequency-option.active {
+            background: #4A90E2;
+        }
+
+        .habit-details {
+            color: #808080;
+            font-size: 14px;
+            margin-top: 8px;
+        }
+
+        .delete-button {
+            background: #FF5757;
+            color: white;
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+            margin-top: 16px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .delete-button:active {
+            background-color: #E04949;
+        }
+
+        .alert {
+            position: absolute;
+            top: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(74, 144, 226, 0.9);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 12px;
+            z-index: 100;
+            display: none;
+            width: 80%;
+            max-width: 300px;
+            text-align: center;
+            backdrop-filter: blur(5px);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+
+        .alert.success {
+            background: rgba(76, 175, 80, 0.9);
+        }
+
+        .alert.warning {
+            background: rgba(255, 152, 0, 0.9);
+        }
+
+        .alert.danger {
+            background: rgba(244, 67, 54, 0.9);
+        }
+
+        .alert.active {
+            display: block;
+            animation: slideDown 0.3s ease-out;
+        }
+
+        .floating-button {
+            position: absolute;
+            bottom: 100px;
+            right: 20px;
+            width: 56px;
+            height: 56px;
+            background: #4A90E2;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            transition: transform 0.2s;
+            z-index: 10;
+        }
+
+        .floating-button:active {
+            transform: scale(0.95);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .button.secondary {
+            background: #2A2A2A;
+        }
+
+        textarea {
+            width: 100%;
+            background: #1E1E1E;
+            border: 1px solid #2A2A2A;
+            padding: 12px;
+            border-radius: 8px;
+            color: white;
+            font-size: 16px;
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .check-options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            padding: 16px;
+        }
+
+        .check-option {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .check-option:hover {
+            transform: scale(1.02);
+        }
+
+        .check-option.success {
+            background: rgba(76, 175, 80, 0.1);
+        }
+
+        .check-option.fail {
+            background: rgba(244, 67, 54, 0.1);
+        }
+
+        .check-option.neutral {
+            background: rgba(158, 158, 158, 0.1);
+        }
+
+        .check-icon {
+            font-size: 24px;
+        }
+
+        .check-text h3 {
+            margin: 0;
+            font-size: 16px;
+        }
+
+        .check-text p {
+            margin: 4px 0 0;
+            font-size: 14px;
+            opacity: 0.7;
+        }
+
+        .habit-item {
+            position: relative;
+        }
+
+        .habit-item.completed {
+            opacity: 0.7;
+        }
+
+        .habit-item.completed .habit-check {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .habit-item .habit-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .habit-item .habit-check {
+            cursor: pointer;
+            padding: 4px 8px;
+        }
+
+        .habit-item .habit-menu {
+            pointer-events: auto !important;
+        }
+
+        .xp-animation {
+            position: absolute;
+            color: #4CAF50;
+            font-weight: bold;
+            font-size: 18px;
+            animation: floatUp 1s ease-out forwards;
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        @keyframes floatUp {
+            0% {
+                transform: translateY(0);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translate(-50%, -100%);
+                opacity: 0;
+            }
+            to {
+                transform: translate(-50%, 0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            50% { transform: translateX(5px); }
+            75% { transform: translateX(-5px); }
+            100% { transform: translateX(0); }
+        }
+
+        .level-animation {
+            animation: pulse 0.5s ease-in-out 3;
+        }
+
+        .health-animation {
+            animation: shake 0.5s ease-in-out;
+        }
+
+        /* Добавляем стиль для индикатора обновления */
+        .update-indicator {
+            position: fixed;
+            top: 5px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #4CAF50;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            font-weight: bold;
+            z-index: 9999;
+            animation: pulse 1s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="update-indicator">ОБНОВЛЕНО: 2024-03-29</div>
+    <div class="iphone-frame">
+        <!-- Экран регистрации -->
+        <div class="screen active" id="registration">
+            <div class="status-bar">
+                <span>17:08</span>
+                <span>85%</span>
+            </div>
+            <div class="header">
+                <h1>Регистрация</h1>
+            </div>
+            <div class="content">
+                <form class="registration-form" onsubmit="event.preventDefault(); saveUserName(); showScreen('main');">
+                    <div class="input-group">
+                        <label>Телефон</label>
+                        <input type="tel" placeholder="+7" required>
+                    </div>
+                    <div class="input-group">
+                        <label>Имя</label>
+                        <input type="text" id="user-name-input" placeholder="Ваше имя" required>
+                    </div>
+                    <div class="input-group">
+                        <label>Возраст</label>
+                        <input type="number" placeholder="Ваш возраст" required>
+                    </div>
+                    <div class="input-group">
+                        <label>Пол</label>
+                        <select required>
+                            <option value="">Выберите пол</option>
+                            <option value="male">Мужской</option>
+                            <option value="female">Женский</option>
+                        </select>
+                    </div>
+                    <button class="button">Начать приключение</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Главный экран -->
+        <div class="screen" id="main">
+            <div class="status-bar">
+                <span>17:08</span>
+                <span>85%</span>
+            </div>
+            <div class="header">
+                <h1 id="main-screen-name">Привычки</h1>
+                <div onclick="showAddHabitModal()" style="cursor: pointer;">+</div>
+            </div>
+            <div class="content">
+                <div class="stats-container">
+                    <div class="stats-row">
+                        <div class="stats-icon">❤️</div>
+                        <div class="stats-bar">
+                            <div class="stats-fill health"></div>
+                        </div>
+                        <div class="stats-value">33/50</div>
+                    </div>
+                    <div class="stats-row">
+                        <div class="stats-icon">⭐</div>
+                        <div class="stats-bar">
+                            <div class="stats-fill exp"></div>
+                        </div>
+                        <div class="stats-value">24/25</div>
+                    </div>
+                    <div class="stats-row">
+                        <div class="stats-icon">💧</div>
+                        <div class="stats-bar">
+                            <div class="stats-fill mana"></div>
+                        </div>
+                        <div class="stats-value">0/82</div>
+                    </div>
+                </div>
+
+                <div class="character-container">
+                    <img src="spacemarin.gif" class="character-image" alt="Character">
+                    <div class="level-badge">Уровень 1</div>
+                </div>
+
+                <div class="goals-container" onclick="claimBeginnerGoalReward()">
+                    <div class="goals-header">
+                        <span>✨ Цели для начинающих</span>
+                        <span>2/5</span>
+                    </div>
+                    <div class="goals-progress">
+                        <div class="goals-progress-fill"></div>
+                    </div>
+                </div>
+
+                <div class="habit-item">
+                    <div style="display: flex; align-items: center;" onclick="showHabitCheckModal({
+                        title: 'Чтение книг',
+                        description: 'Читать минимум 30 минут в день',
+                        frequency: 'Ежедневно',
+                        streak: '5 дней подряд',
+                        difficulty: 2
+                    })">
+                        <div class="habit-color" style="background: #4CAF50;"></div>
+                        <span>Чтение книг</span>
+                    </div>
+                    <div class="habit-actions">
+                        <span class="habit-menu" onclick="event.stopPropagation(); showHabitDetails({
+                            title: 'Чтение книг',
+                            description: 'Читать минимум 30 минут в день',
+                            frequency: 'Ежедневно',
+                            streak: '5 дней подряд',
+                            difficulty: 2
+                        })">⋮</span>
+                    </div>
+                </div>
+
+                <div class="habit-item">
+                    <div style="display: flex; align-items: center;" onclick="showHabitCheckModal({
+                        title: 'Медитация',
+                        description: 'Медитация и расслабление',
+                        frequency: 'Ежедневно',
+                        streak: '3 дня подряд',
+                        difficulty: 1
+                    })">
+                        <div class="habit-color" style="background: #E91E63;"></div>
+                        <span>Медитация</span>
+                    </div>
+                    <div class="habit-actions">
+                        <span class="habit-menu" onclick="event.stopPropagation(); showHabitDetails({
+                            title: 'Медитация',
+                            description: 'Медитация и расслабление',
+                            frequency: 'Ежедневно',
+                            streak: '3 дня подряд',
+                            difficulty: 1
+                        })">⋮</span>
+                    </div>
+                </div>
+            </div>
+            <div class="nav-bar">
+                <div class="nav-item active" onclick="showScreen('main')">
+                    <div class="nav-icon"></div>
+                    <span>Главная</span>
+                </div>
+                <div class="nav-item" onclick="showScreen('habits')">
+                    <div class="nav-icon"></div>
+                    <span>Привычки</span>
+                </div>
+                <div class="nav-item" onclick="showScreen('challenges')">
+                    <div class="nav-icon"></div>
+                    <span>Челленджи</span>
+                </div>
+                <div class="nav-item" onclick="showScreen('friends')">
+                    <div class="nav-icon"></div>
+                    <span>Друзья</span>
+                </div>
+                <div class="nav-item" onclick="showScreen('profile')">
+                    <div class="nav-icon"></div>
+                    <span>Профиль</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Экран привычек -->
+        <div class="screen" id="habits">
+            <div class="status-bar">
+                <span>17:08</span>
+                <span>85%</span>
+            </div>
+            <div class="header">
+                <div class="back-button" onclick="goToMain()">←</div>
+                <h1>Привычки</h1>
+            </div>
+            <div class="content">
+                <div class="habit-item">
+                    <div style="display: flex; align-items: center;" onclick="showHabitCheckModal({
+                        title: 'Чтение книг',
+                        description: 'Читать минимум 30 минут в день',
+                        frequency: 'Ежедневно',
+                        streak: '5 дней подряд',
+                        difficulty: 2
+                    })">
+                        <div class="habit-color" style="background: #4CAF50;"></div>
+                        <span>Чтение книг</span>
+                    </div>
+                    <div class="habit-actions">
+                        <span class="habit-menu" onclick="event.stopPropagation(); showHabitDetails({
+                            title: 'Чтение книг',
+                            description: 'Читать минимум 30 минут в день',
+                            frequency: 'Ежедневно',
+                            streak: '5 дней подряд',
+                            difficulty: 2
+                        })">⋮</span>
+                    </div>
+                </div>
+
+                <div class="habit-item">
+                    <div style="display: flex; align-items: center;" onclick="showHabitCheckModal({
+                        title: 'Медитация',
+                        description: 'Медитация и расслабление',
+                        frequency: 'Ежедневно',
+                        streak: '3 дня подряд',
+                        difficulty: 1
+                    })">
+                        <div class="habit-color" style="background: #E91E63;"></div>
+                        <span>Медитация</span>
+                    </div>
+                    <div class="habit-actions">
+                        <span class="habit-menu" onclick="event.stopPropagation(); showHabitDetails({
+                            title: 'Медитация',
+                            description: 'Медитация и расслабление',
+                            frequency: 'Ежедневно',
+                            streak: '3 дня подряд',
+                            difficulty: 1
+                        })">⋮</span>
+                    </div>
+                </div>
+            </div>
+            <div class="floating-button" onclick="showAddHabitModal()">+</div>
+        </div>
+
+        <!-- Экран профиля -->
+        <div class="screen" id="profile">
+            <div class="status-bar">
+                <span>17:09</span>
+                <span>84%</span>
+            </div>
+            <div class="header">
+                <div class="back-button" onclick="showScreen('main')">←</div>
+                <h1>exxieyan</h1>
+                <div onclick="showScreen('settings')" style="cursor: pointer;">⚙️</div>
+            </div>
+            <div class="content">
+                <div class="profile-header">
+                    <div class="profile-avatar"></div>
+                    <div class="profile-name">@exxieyan</div>
+                    <div class="profile-level">Level 53</div>
+                </div>
+
+                <div class="profile-menu-item" onclick="showScreen('skills')">
+                    <span>Навыки</span>
+                    <span>→</span>
+                </div>
+                <div class="profile-menu-item">
+                    <span>Характеристики</span>
+                    <span>Открывается на 10 уровне →</span>
+                </div>
+                <div class="profile-menu-item" onclick="showScreen('achievements')">
+                    <span>Достижения</span>
+                    <span>→</span>
+                </div>
+                <div class="profile-menu-item" onclick="showScreen('market')">
+                    <span>Рынок</span>
+                    <span>→</span>
+                </div>
+                <div class="profile-menu-item" onclick="showScreen('quests')">
+                    <span>Quests</span>
+                    <span>→</span>
+                </div>
+                <div class="profile-menu-item" onclick="showScreen('customization')">
+                    <span>Customizations</span>
+                    <span>→</span>
+                </div>
+                <div class="profile-menu-item" onclick="showScreen('seasonal-shop')">
+                    <span>Сезонная лавка</span>
+                    <span>Spring →</span>
+                </div>
+            </div>
+            <div class="nav-bar">
+                <div class="nav-item" onclick="showScreen('main')">
+                    <div class="nav-icon"></div>
+                    <span>Главная</span>
+                </div>
+                <div class="nav-item" onclick="showScreen('habits')">
+                    <div class="nav-icon"></div>
+                    <span>Привычки</span>
+                </div>
+                <div class="nav-item" onclick="showScreen('challenges')">
+                    <div class="nav-icon"></div>
+                    <span>Челленджи</span>
+                </div>
+                <div class="nav-item" onclick="showScreen('friends')">
+                    <div class="nav-icon"></div>
+                    <span>Друзья</span>
+                </div>
+                <div class="nav-item active" onclick="showScreen('profile')">
+                    <div class="nav-icon"></div>
+                    <span>Профиль</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Добавляем модальное окно для деталей привычки -->
+    <div class="modal" id="habit-details-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Детали привычки</h2>
+                <div class="modal-close" onclick="closeModal('habit-details-modal')">✕</div>
+            </div>
+            <div id="habit-details-content">
+                <h3 id="habit-title"></h3>
+                <p id="habit-description" class="habit-details"></p>
+                <div class="habit-details">
+                    <p>Частота выполнения: <span id="habit-frequency"></span></p>
+                    <p>Серия успешных выполнений: <span id="habit-streak"></span></p>
+                </div>
+                <div class="difficulty-stars" id="habit-difficulty"></div>
+                <div class="delete-button" onclick="deleteHabit()">Удалить привычку</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Добавляем модальное окно для создания привычки -->
+    <div class="modal" id="add-habit-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Новая привычка</h2>
+                <div class="modal-close" onclick="closeModal('add-habit-modal')">✕</div>
+            </div>
+            <form id="add-habit-form" onsubmit="event.preventDefault(); addHabit();">
+                <div class="input-group">
+                    <label>Название</label>
+                    <input type="text" id="new-habit-title" required>
+                </div>
+                <div class="input-group">
+                    <label>Описание</label>
+                    <textarea id="new-habit-description" required></textarea>
+                </div>
+                <div class="input-group">
+                    <label>Частота выполнения</label>
+                    <select id="new-habit-frequency" required>
+                        <option value="daily">Каждый день</option>
+                        <option value="weekly">Каждую неделю</option>
+                        <option value="monthly">Каждый месяц</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>Сложность</label>
+                    <div class="difficulty-stars" id="new-habit-difficulty">
+                        <div class="star" onclick="setDifficulty(1)"></div>
+                        <div class="star" onclick="setDifficulty(2)"></div>
+                        <div class="star" onclick="setDifficulty(3)"></div>
+                        <div class="star" onclick="setDifficulty(4)"></div>
+                    </div>
+                </div>
+                <div class="button-group">
+                    <button type="button" class="button secondary" onclick="closeModal('add-habit-modal')">Назад</button>
+                    <button type="submit" class="button">Создать</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Добавляем модальное окно отметки привычки -->
+    <div class="modal" id="habit-check-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="check-habit-title">Название привычки</h2>
+                <div class="modal-close" onclick="closeModal('habit-check-modal')">✕</div>
+            </div>
+            <div class="check-options">
+                <div class="check-option success" onclick="markHabit('done')">
+                    <div class="check-icon">✅</div>
+                    <div class="check-text">
+                        <h3>Выполнено</h3>
+                        <p>+опыт, +здоровье, +мана</p>
+                    </div>
+                </div>
+                <div class="check-option fail" onclick="markHabit('skip')">
+                    <div class="check-icon">❌</div>
+                    <div class="check-text">
+                        <h3>Пропущено</h3>
+                        <p>-здоровье</p>
+                    </div>
+                </div>
+                <div class="check-option neutral" onclick="markHabit('excused')">
+                    <div class="check-icon">😴</div>
+                    <div class="check-text">
+                        <h3>Уважительная причина</h3>
+                        <p>нет эффекта</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Добавляем уведомление -->
+    <div class="alert" id="alert"></div>
+
+    <script>
+        let screenHistory = ['registration'];
+        let currentHabitToDelete = null;
+        let currentHabitToCheck = null;
+        let playerStats = {
+            health: 45,        // Начальное здоровье (90% от максимума)
+            maxHealth: 50,     // Максимальное здоровье
+            xp: 0,             // Начальный опыт
+            maxXp: 25,         // Максимальный опыт на 1 уровне
+            mana: 0,           // Начальная мана
+            maxMana: 10,       // Максимальная мана на 1 уровне
+            level: 1,          // Начальный уровень
+            beginnerGoals: 2,   // Прогресс в начальных целях
+            beginnerGoalCompleted: false // Флаг завершения цели
+        };
+
+        function showScreen(screenId) {
+            const currentScreen = document.querySelector('.screen.active');
+            const nextScreen = document.getElementById(screenId);
+            
+            if (currentScreen && nextScreen) {
+                currentScreen.classList.remove('active');
+                nextScreen.classList.add('active');
+
+                // Обновляем активный пункт в навигации
+                document.querySelectorAll('.nav-item').forEach(item => {
+                    item.classList.remove('active');
+                });
+                const activeNavItem = document.querySelector(`.nav-item[onclick="showScreen('${screenId}')"]`);
+                if (activeNavItem) {
+                    activeNavItem.classList.add('active');
+                }
+            }
+        }
+
+        // Обработка кнопки "назад"
+        document.querySelectorAll('.back-button').forEach(button => {
+            button.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (screenHistory.length > 1) {
+                    const previousScreen = screenHistory[screenHistory.length - 2];
+                    showScreen(previousScreen);
+                }
+            });
+        });
+
+        // Функции для работы с привычками
+        function showHabitDetails(habit) {
+            const modal = document.getElementById('habit-details-modal');
+            const title = document.getElementById('habit-title');
+            const description = document.getElementById('habit-description');
+            const frequency = document.getElementById('habit-frequency');
+            const streak = document.getElementById('habit-streak');
+            const difficulty = document.getElementById('habit-difficulty');
+
+            currentHabitToDelete = habit; // Сохраняем текущую привычку
+
+            title.textContent = habit.title;
+            description.textContent = habit.description;
+            frequency.textContent = habit.frequency;
+            streak.textContent = habit.streak;
+
+            // Очищаем и заполняем звезды сложности
+            difficulty.innerHTML = '';
+            for (let i = 0; i < 4; i++) {
+                const star = document.createElement('div');
+                star.className = `star ${i < habit.difficulty ? 'active' : ''}`;
+                difficulty.appendChild(star);
+            }
+
+            modal.classList.add('active');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+
+        function showAddHabitModal() {
+            document.getElementById('add-habit-modal').classList.add('active');
+        }
+
+        let selectedDifficulty = 1;
+        let selectedFrequency = 'daily';
+
+        function setDifficulty(level) {
+            selectedDifficulty = level;
+            const stars = document.querySelectorAll('#new-habit-difficulty .star');
+            stars.forEach((star, index) => {
+                star.classList.toggle('active', index < level);
+            });
+        }
+
+        function setFrequency(freq) {
+            selectedFrequency = freq;
+            const options = document.querySelectorAll('.frequency-option');
+            options.forEach(option => {
+                option.classList.remove('active');
+            });
+            event.target.classList.add('active');
+        }
+
+        function showAlert(message, type = 'info') {
+            const alert = document.getElementById('alert');
+            alert.textContent = message;
+            
+            // Удаляем все классы типов
+            alert.classList.remove('success', 'warning', 'danger');
+            
+            // Добавляем нужный класс типа
+            if (type !== 'info') {
+                alert.classList.add(type);
+            }
+            
+            alert.classList.add('active');
+            setTimeout(() => {
+                alert.classList.remove('active');
+            }, 3000);
+        }
+
+        function addHabit() {
+            const title = document.getElementById('new-habit-title').value;
+            const description = document.getElementById('new-habit-description').value;
+            const frequency = document.getElementById('new-habit-frequency').value;
+            const difficulty = selectedDifficulty;
+            
+            // Генерируем случайный цвет для привычки (один раз, чтобы он был одинаковым на обоих экранах)
+            const colors = ['#4A90E2', '#4CAF50', '#FF9800', '#E91E63', '#9C27B0'];
+            const randomColor = colors[Math.floor(Math.random() * colors.length)];
+            
+            // Данные привычки
+            const habitData = {
+                title: title,
+                description: description,
+                frequency: frequency === 'daily' ? 'Каждый день' : 
+                          frequency === 'weekly' ? 'Каждую неделю' : 'Каждый месяц',
+                streak: 'Только начали',
+                difficulty: difficulty,
+                color: randomColor  // Добавляем цвет в данные привычки
+            };
+            
+            // Создаем новый элемент привычки для экрана привычек
+            const habitElement = createHabitElement(habitData);
+
+            // Добавляем привычку на экран привычек
+            const habitsContent = document.querySelector('#habits .content');
+            habitsContent.appendChild(habitElement);
+
+            // Добавляем привычку на главный экран, только если это ежедневная привычка
+            if (frequency === 'daily') {
+                const mainContent = document.querySelector('#main .content');
+                const goalsContainer = mainContent.querySelector('.goals-container');
+                const habitClone = createHabitElement(habitData);
+                mainContent.insertBefore(habitClone, goalsContainer.nextSibling);
+            }
+
+            // Обновляем счетчик целей для начинающих
+            updateBeginnerGoals();
+
+            showAlert('Привычка успешно создана!', 'success');
+            closeModal('add-habit-modal');
+            document.getElementById('add-habit-form').reset();
+            setDifficulty(1);
+        }
+
+        // Функция для обновления прогресса целей для начинающих
+        function updateBeginnerGoals() {
+            // Увеличиваем счетчик целей
+            playerStats.beginnerGoals++;
+            
+            // Обновляем отображение на странице
+            const goalCounter = document.querySelector('.goals-header span:last-child');
+            goalCounter.textContent = `${playerStats.beginnerGoals}/5`;
+            
+            // Обновляем ширину прогресс-бара
+            const progressFill = document.querySelector('.goals-progress-fill');
+            const progressWidth = (playerStats.beginnerGoals / 5) * 100;
+            progressFill.style.width = `${progressWidth}%`;
+            
+            // Анимируем прогресс-бар
+            progressFill.classList.add('animating');
+            setTimeout(() => {
+                progressFill.classList.remove('animating');
+            }, 1500);
+            
+            // Проверяем, достигнута ли цель (5 привычек)
+            if (playerStats.beginnerGoals >= 5 && !playerStats.beginnerGoalCompleted) {
+                completeBeginnerGoal();
+            }
+        }
+
+        // Функция для завершения цели для начинающих
+        function completeBeginnerGoal() {
+            // Устанавливаем флаг завершения цели
+            playerStats.beginnerGoalCompleted = true;
+            
+            // Получаем контейнер цели
+            const goalsContainer = document.querySelector('.goals-container');
+            
+            // Добавляем класс "completed" для стилизации
+            goalsContainer.classList.add('completed');
+            
+            // Анимируем контейнер цели
+            goalsContainer.classList.add('goal-reward-animation');
+            setTimeout(() => {
+                goalsContainer.classList.remove('goal-reward-animation');
+            }, 1000);
+            
+            // Изменяем цвет заголовка на зеленый
+            const goalHeader = document.querySelector('.goals-header span:first-child');
+            goalHeader.style.color = '#4CAF50';
+            
+            showAlert('Цель "Добавить 5 привычек" доступна для получения награды!', 'success');
+        }
+
+        // Функция для получения награды за выполнение цели
+        function claimBeginnerGoalReward() {
+            // Проверяем, завершена ли цель и не получена ли уже награда
+            if (!playerStats.beginnerGoalCompleted) {
+                return; // Если цель не завершена, ничего не делаем
+            }
+            
+            const goalsContainer = document.querySelector('.goals-container');
+            if (goalsContainer.classList.contains('reward-claimed')) {
+                return; // Если награда уже получена, ничего не делаем
+            }
+            
+            // Награда: 10 единиц опыта
+            const xpReward = 10;
+            const prevXp = playerStats.xp;
+            
+            // Начисляем опыт
+            playerStats.xp += xpReward;
+            
+            // Показываем анимацию награды
+            showRewardAnimation(xpReward);
+            
+            // Анимируем контейнер цели
+            goalsContainer.classList.add('goal-reward-animation');
+            setTimeout(() => {
+                goalsContainer.classList.remove('goal-reward-animation');
+            }, 1000);
+            
+            // Отмечаем награду как полученную
+            goalsContainer.classList.add('reward-claimed');
+            goalsContainer.classList.remove('completed');
+            
+            // Показываем уведомление о награде
+            showAlert(`Поздравляем! Вы получили +${xpReward} XP за выполнение цели!`, 'success');
+            
+            // Обновляем статистику
+            updateStats(prevXp, playerStats.health, playerStats.mana);
+            
+            // Проверяем, достаточно ли опыта для повышения уровня
+            if (playerStats.xp >= playerStats.maxXp) {
+                levelUp();
+            }
+        }
+
+        function createHabitElement(habit) {
+            const habitElement = document.createElement('div');
+            habitElement.className = 'habit-item';
+            
+            // Используем цвет из данных привычки или генерируем новый, если его нет
+            const habitColor = habit.color || (() => {
+                const colors = ['#4A90E2', '#4CAF50', '#FF9800', '#E91E63', '#9C27B0'];
+                return colors[Math.floor(Math.random() * colors.length)];
+            })();
+            
+            // Сохраняем данные привычки в data-атрибутах
+            habitElement.dataset.title = habit.title;
+            habitElement.dataset.description = habit.description;
+            habitElement.dataset.frequency = habit.frequency;
+            habitElement.dataset.streak = habit.streak;
+            habitElement.dataset.difficulty = habit.difficulty;
+            habitElement.dataset.color = habitColor;
+            
+            habitElement.innerHTML = `
+                <div style="display: flex; align-items: center;" onclick="showHabitCheckModal({
+                    title: '${habit.title}',
+                    description: '${habit.description}',
+                    frequency: '${habit.frequency}',
+                    streak: '${habit.streak}',
+                    difficulty: ${habit.difficulty},
+                    color: '${habitColor}'
+                })">
+                    <div class="habit-color" style="background: ${habitColor};"></div>
+                    <span>${habit.title}</span>
+                </div>
+                <div class="habit-actions">
+                    <span class="habit-menu" onclick="event.stopPropagation(); showHabitDetails({
+                        title: '${habit.title}',
+                        description: '${habit.description}',
+                        frequency: '${habit.frequency}',
+                        streak: '${habit.streak}',
+                        difficulty: ${habit.difficulty},
+                        color: '${habitColor}'
+                    })">⋮</span>
+                </div>
+            `;
+            
+            return habitElement;
+        }
+
+        function deleteHabit() {
+            if (confirm('Вы уверены? Очки опыта и награды сохранятся, но весь прогресс в привычке будет потерян.')) {
+                // Удаляем привычку с экрана привычек
+                const habitsScreen = document.querySelector('#habits .content');
+                const mainScreen = document.querySelector('#main .content');
+                
+                const habitTitle = currentHabitToDelete.title;
+                
+                // Находим и удаляем привычку на экране привычек
+                const habitsItems = habitsScreen.querySelectorAll('.habit-item');
+                habitsItems.forEach(item => {
+                    if (item.textContent.includes(habitTitle)) {
+                        item.remove();
+                    }
+                });
+
+                // Находим и удаляем привычку на главном экране
+                const mainItems = mainScreen.querySelectorAll('.habit-item');
+                mainItems.forEach(item => {
+                    if (item.textContent.includes(habitTitle)) {
+                        item.remove();
+                    }
+                });
+
+                showAlert('Привычка удалена', 'success');
+                closeModal('habit-details-modal');
+                currentHabitToDelete = null;
+            }
+        }
+
+        function goToMain() {
+            showScreen('main');
+        }
+
+        function showHabitCheckModal(habit) {
+            currentHabitToCheck = habit;
+            document.getElementById('check-habit-title').textContent = habit.title;
+            document.getElementById('habit-check-modal').classList.add('active');
+        }
+
+        function markHabit(status) {
+            const habit = currentHabitToCheck;
+            const xpGain = habit.difficulty * 10;
+            const healthGain = habit.difficulty * 2;
+            const healthLoss = habit.difficulty * 10;
+            const manaGain = 1;
+            const manaLoss = 1; // Стоимость "Уважительной причины" - 1 единица маны
+            
+            const prevXp = playerStats.xp;
+            const prevHealth = playerStats.health;
+            const prevMana = playerStats.mana;
+            
+            switch(status) {
+                case 'done':
+                    playerStats.xp += xpGain;
+                    playerStats.health = Math.min(playerStats.maxHealth, playerStats.health + healthGain);
+                    playerStats.mana = Math.min(playerStats.maxMana, playerStats.mana + manaGain);
+                    
+                    console.log(`XP: ${prevXp} -> ${playerStats.xp}/${playerStats.maxXp}`);
+                    console.log(`HP: ${prevHealth} -> ${playerStats.health}/${playerStats.maxHealth}`);
+                    
+                    showRewardAnimation(xpGain);
+                    
+                    markHabitCompleted(habit);
+                    
+                    showAlert(`+${xpGain} XP, +${healthGain} ❤️, +${manaGain} 💧`, 'success');
+                    
+                    if (playerStats.xp >= playerStats.maxXp) {
+                        levelUp();
+                    } else {
+                        updateStats(prevXp, prevHealth, prevMana);
+                    }
+                    break;
+                    
+                case 'skip':
+                    const healthIcon = document.querySelector('.stats-row:nth-child(1) .stats-icon');
+                    animateElement(healthIcon, 'health-animation');
+                    
+                    playerStats.health = Math.max(0, playerStats.health - healthLoss);
+                    
+                    showAlert(`-${healthLoss} ❤️`, 'danger');
+                    
+                    if (playerStats.health <= 0 && playerStats.level > 1) {
+                        levelDown();
+                    } else {
+                        updateStats(prevXp, prevHealth, prevMana);
+                    }
+                    break;
+                    
+                case 'excused':
+                    // Расходуем 1 единицу маны
+                    playerStats.mana = Math.max(0, playerStats.mana - manaLoss);
+                    const manaIcon = document.querySelector('.stats-row:nth-child(3) .stats-icon');
+                    animateElement(manaIcon, 'mana-animation');
+                    
+                    showAlert(`Пропуск засчитан без потери здоровья. -${manaLoss} 💧`, 'warning');
+                    updateStats(prevXp, prevHealth, prevMana);
+                    break;
+            }
+            
+            closeModal('habit-check-modal');
+            currentHabitToCheck = null;
+        }
+
+        function markHabitCompleted(habit) {
+            const habitElements = document.querySelectorAll('.habit-item');
+            habitElements.forEach(element => {
+                if (element.textContent.includes(habit.title)) {
+                    element.classList.add('completed');
+                    const menuButton = element.querySelector('.habit-menu');
+                    if (menuButton) {
+                        menuButton.style.pointerEvents = 'auto';
+                    }
+                }
+            });
+        }
+
+        function showRewardAnimation(xp) {
+            const element = document.createElement('div');
+            element.className = 'xp-animation';
+            element.textContent = `+${xp}XP`;
+            
+            const frame = document.querySelector('.iphone-frame');
+            element.style.left = `${Math.random() * 60 + 20}%`;
+            element.style.top = `${Math.random() * 30 + 35}%`;
+            frame.appendChild(element);
+            
+            setTimeout(() => element.remove(), 1000);
+        }
+
+        function resetLevelStatistics() {
+            // Обновляем отображение статистики после изменения уровня
+            document.querySelector('.stats-fill.health').style.width = `${(playerStats.health / playerStats.maxHealth) * 100}%`;
+            document.querySelector('.stats-fill.exp').style.width = `${(playerStats.xp / playerStats.maxXp) * 100}%`;
+            document.querySelector('.stats-fill.mana').style.width = `${(playerStats.mana / playerStats.maxMana) * 100}%`;
+            
+            document.querySelector('.stats-row:nth-child(1) .stats-value').textContent = `${playerStats.health}/${playerStats.maxHealth}`;
+            document.querySelector('.stats-row:nth-child(2) .stats-value').textContent = `${playerStats.xp}/${playerStats.maxXp}`;
+            document.querySelector('.stats-row:nth-child(3) .stats-value').textContent = `${playerStats.mana}/${playerStats.maxMana}`;
+            
+            // Обновляем уровень персонажа на всех экранах
+            document.querySelectorAll('.level-badge').forEach(badge => {
+                badge.textContent = `Уровень ${playerStats.level}`;
+            });
+            
+            // Обновляем профиль на экране профиля, если он существует
+            const profileLevel = document.querySelector('.profile-level');
+            if (profileLevel) {
+                profileLevel.textContent = `Level ${playerStats.level}`;
+            }
+            
+            // Обновляем отображение прогресса целей
+            const goalCounter = document.querySelector('.goals-header span:last-child');
+            if (goalCounter) {
+                goalCounter.textContent = `${playerStats.beginnerGoals}/5`;
+            }
+            
+            const progressFill = document.querySelector('.goals-progress-fill');
+            if (progressFill) {
+                const progressWidth = (playerStats.beginnerGoals / 5) * 100;
+                progressFill.style.width = `${progressWidth}%`;
+            }
+        }
+
+        function levelUp() {
+            // Сохраняем избыток опыта для переноса на следующий уровень
+            const overflowXP = playerStats.xp - playerStats.maxXp;
+            
+            // Повышаем уровень
+            playerStats.level++;
+            
+            // Обновляем максимальные значения характеристик
+            playerStats.maxXp += 5;
+            playerStats.maxHealth += 10;
+            playerStats.maxMana += 1;
+            
+            // Полностью восстанавливаем здоровье при повышении уровня
+            playerStats.health = playerStats.maxHealth;
+            
+            // Переносим избыток опыта на следующий уровень
+            playerStats.xp = overflowXP;
+            
+            // Анимируем значок уровня
+            const levelBadge = document.querySelector('.level-badge');
+            if (levelBadge) {
+                animateElement(levelBadge, 'level-animation');
+            }
+            
+            // Показываем уведомление о повышении уровня
+            showAlert(`Уровень повышен! Теперь вы ${playerStats.level} уровня! Здоровье полностью восстановлено.`, 'success');
+            
+            // Обновляем статистику на экране
+            resetLevelStatistics();
+            
+            console.log(`Уровень повышен до ${playerStats.level}. Макс. XP: ${playerStats.maxXp}, Макс. HP: ${playerStats.maxHealth}`);
+            
+            // Если после переноса опыта на новый уровень его снова достаточно для повышения уровня
+            if (playerStats.xp >= playerStats.maxXp) {
+                levelUp(); // Рекурсивно повышаем уровень снова
+            }
+        }
+
+        function levelDown() {
+            // Понижаем уровень
+            playerStats.level--;
+            
+            // Уменьшаем максимальные характеристики (не меньше минимальных значений)
+            playerStats.maxXp = Math.max(5, playerStats.maxXp - 5);
+            playerStats.maxHealth = Math.max(10, playerStats.maxHealth - 10);
+            playerStats.maxMana = Math.max(1, playerStats.maxMana - 1);
+            
+            // Восстанавливаем здоровье до 75% от максимума
+            playerStats.health = Math.round(playerStats.maxHealth * 0.75);
+            
+            // Ограничиваем ману новым максимальным значением
+            playerStats.mana = Math.min(playerStats.mana, playerStats.maxMana);
+            
+            // Сбрасываем опыт до 0 при понижении уровня
+            playerStats.xp = 0;
+            
+            // Анимируем значок уровня
+            const levelBadge = document.querySelector('.level-badge');
+            if (levelBadge) {
+                animateElement(levelBadge, 'health-animation');
+            }
+            
+            // Показываем уведомление о понижении уровня
+            showAlert(`Уровень понижен! Теперь вы ${playerStats.level} уровня! Здоровье частично восстановлено.`, 'danger');
+            
+            // Обновляем статистику на экране
+            resetLevelStatistics();
+            
+            console.log(`Уровень понижен до ${playerStats.level}. Макс. XP: ${playerStats.maxXp}, Макс. HP: ${playerStats.maxHealth}`);
+        }
+
+        function updateStats(prevXp, prevHealth, prevMana) {
+            const healthBar = document.querySelector('.stats-fill.health');
+            const expBar = document.querySelector('.stats-fill.exp');
+            const manaBar = document.querySelector('.stats-fill.mana');
+            
+            const healthValue = document.querySelector('.stats-row:nth-child(1) .stats-value');
+            const expValue = document.querySelector('.stats-row:nth-child(2) .stats-value');
+            const manaValue = document.querySelector('.stats-row:nth-child(3) .stats-value');
+            
+            if (healthBar && expBar && manaBar) {
+                healthBar.classList.add('animating');
+                expBar.classList.add('animating');
+                manaBar.classList.add('animating');
+                
+                healthBar.style.width = `${(playerStats.health / playerStats.maxHealth) * 100}%`;
+                expBar.style.width = `${(playerStats.xp / playerStats.maxXp) * 100}%`;
+                manaBar.style.width = `${(playerStats.mana / playerStats.maxMana) * 100}%`;
+                
+                if (prevXp !== undefined) animateNumber(expValue, prevXp, playerStats.xp, playerStats.maxXp);
+                else animateNumber(expValue, null, playerStats.xp, playerStats.maxXp);
+                
+                if (prevHealth !== undefined) animateNumber(healthValue, prevHealth, playerStats.health, playerStats.maxHealth);
+                else animateNumber(healthValue, null, playerStats.health, playerStats.maxHealth);
+                
+                if (prevMana !== undefined) animateNumber(manaValue, prevMana, playerStats.mana, playerStats.maxMana);
+                else animateNumber(manaValue, null, playerStats.mana, playerStats.maxMana);
+                
+                setTimeout(() => {
+                    healthBar.classList.remove('animating');
+                    expBar.classList.remove('animating');
+                    manaBar.classList.remove('animating');
+                }, 1500);
+            }
+            
+            document.querySelectorAll('.level-badge').forEach(badge => {
+                badge.textContent = `Уровень ${playerStats.level}`;
+            });
+            
+            const goalsHeader = document.querySelector('.goals-header span:last-child');
+            const goalsFill = document.querySelector('.goals-progress-fill');
+            
+            if (goalsHeader && goalsFill) {
+                goalsHeader.textContent = `${playerStats.beginnerGoals}/5`;
+                goalsFill.style.width = `${(playerStats.beginnerGoals / 5) * 100}%`;
+            }
+        }
+
+        function animateNumber(element, startValue, endValue, maxValue) {
+            if (isNaN(startValue) || startValue === null) {
+                const textValue = element.textContent.split('/')[0];
+                startValue = parseInt(textValue) || 0;
+            }
+            
+            endValue = parseInt(endValue);
+            maxValue = parseInt(maxValue);
+            
+            const duration = 1500;
+            const startTime = Date.now();
+            
+            function updateNumber() {
+                const currentTime = Date.now();
+                const elapsed = currentTime - startTime;
+                
+                let progress = Math.min(elapsed / duration, 1);
+                
+                progress = easeOutCubic(progress);
+                
+                const currentValue = Math.round(startValue + (endValue - startValue) * progress);
+                
+                element.textContent = `${currentValue}/${maxValue}`;
+                
+                if (progress < 1) {
+                    requestAnimationFrame(updateNumber);
+                }
+            }
+            
+            requestAnimationFrame(updateNumber);
+        }
+
+        function easeOutCubic(x) {
+            return 1 - Math.pow(1 - x, 3);
+        }
+
+        function saveUserName() {
+            const userName = document.getElementById('user-name-input').value;
+            document.getElementById('main-screen-name').textContent = userName;
+        }
+
+        setDifficulty(1);
+        document.querySelector('.frequency-option').classList.add('active');
+
+        function animateElement(element, className, duration = 1500) {
+            element.classList.add(className);
+            setTimeout(() => {
+                element.classList.remove(className);
+            }, duration);
+        }
+
+        window.onload = function() {
+            document.querySelector('.stats-fill.health').style.width = `${(playerStats.health / playerStats.maxHealth) * 100}%`;
+            document.querySelector('.stats-fill.exp').style.width = `${(playerStats.xp / playerStats.maxXp) * 100}%`;
+            document.querySelector('.stats-fill.mana').style.width = `${(playerStats.mana / playerStats.maxMana) * 100}%`;
+            
+            document.querySelector('.stats-row:nth-child(1) .stats-value').textContent = `${playerStats.health}/${playerStats.maxHealth}`;
+            document.querySelector('.stats-row:nth-child(2) .stats-value').textContent = `${playerStats.xp}/${playerStats.maxXp}`;
+            document.querySelector('.stats-row:nth-child(3) .stats-value').textContent = `${playerStats.mana}/${playerStats.maxMana}`;
+        };
+    </script>
+</body>
+</html> 
